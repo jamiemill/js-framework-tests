@@ -1,6 +1,6 @@
 $(document).ready(function() {
     var appRouter = new AppRouter();
-    Backbone.history.start({pushState: false});
+    Backbone.history.start({pushState: true});
 });
 
 
@@ -11,7 +11,7 @@ var AppRouter = Backbone.Router.extend({
         'stock': 'stock'
     },
     initialize: function() {
-        new NavView().render().$el.appendTo('#nav-container');
+        new NavView({router: this}).render().$el.appendTo('#nav-container');
     },
     home: function() {
         this.mainView && this.mainView.remove();
@@ -44,6 +44,17 @@ var StockView = Backbone.View.extend({
 });
 
 var NavView = Backbone.View.extend({
+    router: null,
+    events: {
+        'click a': '_navClicked'
+    },
+    initialize: function(options) {
+        this.router = options.router;
+    },
+    _navClicked: function(e) {
+        e.preventDefault();
+        this.router.navigate(e.target.hash.substr(1), {trigger: true});
+    },
     render: function() {
         var template = _.template($('#nav-template').text());
         this.$el.html(template());
