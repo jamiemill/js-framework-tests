@@ -10,15 +10,18 @@ var AppRouter = Backbone.Router.extend({
         '': 'home',
         'stock': 'stock'
     },
+    initialize: function() {
+        new NavView().render().$el.appendTo('#nav-container');
+    },
     home: function() {
         this.mainView && this.mainView.remove();
         this.mainView = new HomeView();
-        this.mainView.render().appendTo($('#main-view-container'));
+        this.mainView.render().$el.appendTo($('#main-view-container'));
     },
     stock: function() {
         this.mainView && this.mainView.remove();
         this.mainView = new StockView();
-        this.mainView.render().appendTo($('#main-view-container'));
+        this.mainView.render().$el.appendTo($('#main-view-container'));
     }
 });
 
@@ -27,7 +30,7 @@ var HomeView = Backbone.View.extend({
     render: function() {
         var template = _.template($('#home-template').text());
         this.$el.html(template());
-        return this.$el;
+        return this;
     }
 });
 
@@ -36,6 +39,14 @@ var StockView = Backbone.View.extend({
     render: function() {
         var template = _.template($('#stock-template').text());
         this.$el.html(template());
-        return this.$el;
+        return this;
+    }
+});
+
+var NavView = Backbone.View.extend({
+    render: function() {
+        var template = _.template($('#nav-template').text());
+        this.$el.html(template());
+        return this;
     }
 });
