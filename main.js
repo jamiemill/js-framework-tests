@@ -21,7 +21,7 @@ $(document).ready(function() {
 var App = function() {
     this.initialize.apply(this, arguments);
 };
-App.prototype = _.extend({}, Backbone.Events, {
+App.prototype = {
     appRouter: null,
     mainView: null,
     navView: null,
@@ -43,7 +43,7 @@ App.prototype = _.extend({}, Backbone.Events, {
         this.navView.setCurrent(pageName);
         this.appRouter.navigate(route);
     }
-});
+};
 
 
 var AppRouter = Backbone.Router.extend({
