@@ -1,44 +1,65 @@
 $(document).ready(function() {
-    var appRouter = new AppRouter();
+    var app = new App();
     Backbone.history.start({pushState: true});
 });
 
 // In this version:
 // - html5 pushstate is used
 // - navigation clicks are intercepted
-// - they are translated to calls to router.navigate with {trigger:true}
+// - they are translated into instructions to the App object to show a page
+// - the App object then notifies the router to update the URL passively
 // - the nav view's lifecycle is long, it is told to change state when
 //   the main view changes.
 // - note that when the nav view intercepts a click on a menu item
-//   it doesn't highlight that menu item, it just tells the router
-//   to navigate, and waits to be told what to highlight in response.
+//   it doesn't highlight that menu item, it just tells the app what
+//   view to show, and waits to be told what to highlight in response.
 // - instead it could highlight the item immediately, but then there
 //   are two codepaths for highlighting the current item (being told
 //   externally after initial construction, and internally on click)
 
 
-var AppRouter = Backbone.Router.extend({
+var App = function() {
+    this.initialize.apply(this, arguments);
+};
+App.prototype = _.extend({}, Backbone.Events, {
+    appRouter: null,
     mainView: null,
     navView: null,
+    initialize: function() {
+        this.appRouter = new AppRouter({app: this});
+        this.navView = new NavView({app: this});
+        this.navView.render().$el.appendTo('#nav-container');
+    },
+    showHome: function() {
+        this._show(new HomeView(), 'home', '');
+    },
+    showStock: function() {
+        this._show(new StockView(), 'stock', 'stock');
+    },
+    _show: function(view, pageName, route) {
+        this.mainView && this.mainView.remove();
+        this.mainView = view;
+        this.mainView.render().$el.appendTo($('#main-view-container'));
+        this.navView.setCurrent(pageName);
+        this.appRouter.navigate(route);
+    }
+});
+
+
+var AppRouter = Backbone.Router.extend({
     routes: {
         '': 'home',
         'stock': 'stock'
     },
-    initialize: function() {
-        this.navView = new NavView({router: this});
-        this.navView.render().$el.appendTo('#nav-container');
+    app: null,
+    initialize: function(options) {
+        this.app = options.app;
     },
     home: function() {
-        this.mainView && this.mainView.remove();
-        this.mainView = new HomeView();
-        this.mainView.render().$el.appendTo($('#main-view-container'));
-        this.navView.setCurrent('home');
+        this.app.showHome();
     },
     stock: function() {
-        this.mainView && this.mainView.remove();
-        this.mainView = new StockView();
-        this.mainView.render().$el.appendTo($('#main-view-container'));
-        this.navView.setCurrent('stock');
+        this.app.showStock();
     }
 });
 
@@ -61,18 +82,18 @@ var StockView = Backbone.View.extend({
 });
 
 var NavView = Backbone.View.extend({
-    router: null,
+    app: null,
     current: null,
     events: {
         'click a': '_navClicked'
     },
     initialize: function(options) {
-        this.router = options.router;
+        this.app = options.app;
     },
     _navClicked: function(e) {
         e.preventDefault();
-        var pageName = e.target.hash.substr(1);
-        this.router.navigate(pageName, {trigger: true});
+        var pageName = $(e.target).data('page');
+        this.app['show' + pageName]();
     },
     _highlightCurrent: function() {
         this.$('a').removeClass('current');
