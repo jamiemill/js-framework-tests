@@ -33,7 +33,9 @@ App.prototype = {
         this.navView.render().$el.appendTo('#nav-container');
     },
     showHome: function() {
-        this._show(new HomeView(), 'home', '');
+        var watchlist = new Watchlist();
+        watchlist.fetch();
+        this._show(new HomeView({watchlist: watchlist}), 'home', '');
     },
     showStock: function(stockId) {
         var stock = new Stock({id: stockId});
@@ -71,9 +73,7 @@ var AppRouter = Backbone.Router.extend({
 var HomeView = Backbone.View.extend({
     watchlistView: null,
     initialize: function() {
-        var watchlist = new Watchlist();
-        watchlist.fetch();
-        this.watchlistView = new WatchlistView({watchlist: watchlist});
+        this.watchlistView = new WatchlistView({watchlist: options.watchlist});
     },
     render: function() {
         var template = _.template($('#home-template').text());
