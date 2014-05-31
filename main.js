@@ -3,7 +3,7 @@ $(document).ready(function() {
     Backbone.history.start({pushState: true});
 });
 
-// Parent version: none
+// Parent version: master
 
 // In this version:
 // - html5 pushstate is used
