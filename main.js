@@ -7,25 +7,32 @@ $(document).ready(function() {
 // - html5 pushstate is used
 // - navigation clicks are intercepted
 // - they are translated to calls to router.navigate with {trigger:true}
+// - the nav view's lifecycle is long, it is told to change state when
+//   the main view changes.
+
 
 var AppRouter = Backbone.Router.extend({
     mainView: null,
+    navView: null,
     routes: {
         '': 'home',
         'stock': 'stock'
     },
     initialize: function() {
-        new NavView({router: this}).render().$el.appendTo('#nav-container');
+        this.navView = new NavView({router: this});
+        this.navView.render().$el.appendTo('#nav-container');
     },
     home: function() {
         this.mainView && this.mainView.remove();
         this.mainView = new HomeView();
         this.mainView.render().$el.appendTo($('#main-view-container'));
+        this.navView.setCurrent('home');
     },
     stock: function() {
         this.mainView && this.mainView.remove();
         this.mainView = new StockView();
         this.mainView.render().$el.appendTo($('#main-view-container'));
+        this.navView.setCurrent('stock');
     }
 });
 
@@ -49,6 +56,7 @@ var StockView = Backbone.View.extend({
 
 var NavView = Backbone.View.extend({
     router: null,
+    current: null,
     events: {
         'click a': '_navClicked'
     },
@@ -59,9 +67,18 @@ var NavView = Backbone.View.extend({
         e.preventDefault();
         this.router.navigate(e.target.hash.substr(1), {trigger: true});
     },
+    _highlightCurrent: function() {
+        this.$('a').removeClass('current');
+        this.$('a.' + this.current).addClass('current');
+    },
+    setCurrent: function(current) {
+        this.current = current;
+        this.render();
+    },
     render: function() {
         var template = _.template($('#nav-template').text());
         this.$el.html(template());
+        this._highlightCurrent();
         return this;
     }
 });
