@@ -71,7 +71,8 @@ var NavView = Backbone.View.extend({
     },
     _navClicked: function(e) {
         e.preventDefault();
-        this.router.navigate(e.target.hash.substr(1), {trigger: true});
+        var pageName = e.target.hash.substr(1);
+        this.router.navigate(pageName, {trigger: true});
     },
     _highlightCurrent: function() {
         this.$('a').removeClass('current');
