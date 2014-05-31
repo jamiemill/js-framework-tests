@@ -22,12 +22,12 @@
 
 <script type="x-template" id="home-template">
   <p>This is the home template.</p>
+  <div class="watchlist-container"></div>
 </script>
 
 <script type="x-template" id="stock-template">
   <p>This is the stock template.</p>
-  <h1><%- stock.name %></h1>
-  <h2><%- stock.symbol %></h2>
+  <h1><%- stock.symbol %>: <%- stock.name %></h1>
 </script>
 
 <script type="x-template" id="nav-template">
@@ -35,4 +35,13 @@
     <a class="home" href="/">Home</a>
     <a class="stock" href="/stock/5">Stock</a>
   </nav>
+</script>
+
+<script type="x-template" id="watchlist-template">
+  <h2>Watchlist</h2>
+  <ul>
+    <% _.each(watchlist, function(stock) { %>
+      <li><%- stock.symbol %>: <%- stock.name %></li>
+    <% }); %>
+  </ul>
 </script>
