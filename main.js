@@ -98,7 +98,7 @@ var NavView = Backbone.View.extend({
 
 var Stock = Backbone.Model.extend({
     url: function() {
-        return 'stock-' + this.id + '.json';
+        return '/stock-' + this.id + '.json';
     }
 });
 
