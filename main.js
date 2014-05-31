@@ -72,7 +72,7 @@ var AppRouter = Backbone.Router.extend({
 
 var HomeView = Backbone.View.extend({
     watchlistView: null,
-    initialize: function() {
+    initialize: function(options) {
         this.watchlistView = new WatchlistView({watchlist: options.watchlist});
     },
     render: function() {
