@@ -36,7 +36,9 @@ App.prototype = {
         this._show(new HomeView(), 'home', '');
     },
     showStock: function(stockId) {
-        this._show(new StockView({stockId: stockId}), 'stock', 'stock/' + stockId);
+        var stock = new Stock({id: stockId});
+        stock.fetch();
+        this._show(new StockView({stock: stock}), 'stock', 'stock/' + stockId);
     },
     _show: function(view, pageName, route) {
         this.mainView && this.mainView.remove();
@@ -69,7 +71,9 @@ var AppRouter = Backbone.Router.extend({
 var HomeView = Backbone.View.extend({
     watchlistView: null,
     initialize: function() {
-        this.watchlistView = new WatchlistView();
+        var watchlist = new Watchlist();
+        watchlist.fetch();
+        this.watchlistView = new WatchlistView({watchlist: watchlist});
     },
     render: function() {
         var template = _.template($('#home-template').text());
@@ -83,8 +87,7 @@ var HomeView = Backbone.View.extend({
 var StockView = Backbone.View.extend({
     stock: null,
     initialize: function(options) {
-        this.stock = new Stock({id: options.stockId});
-        this.stock.fetch();
+        this.stock = options.stock;
         this.stock.on('change', this.render, this);
     },
     render: function() {
@@ -130,9 +133,8 @@ var NavView = Backbone.View.extend({
 
 var WatchlistView = Backbone.View.extend({
     watchlist: null,
-    initialize: function() {
-        this.watchlist = new Watchlist();
-        this.watchlist.fetch();
+    initialize: function(options) {
+        this.watchlist = options.watchlist;
         this.watchlist.on('sync', this.render, this);
     },
     render: function() {
