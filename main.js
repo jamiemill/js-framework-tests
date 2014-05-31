@@ -7,26 +7,32 @@ $(document).ready(function() {
 // - navigation is via real clicks on links that are just anchors
 // - therefore routes get triggered automatically by backbone
 // - there is no html5 pushstate
+// - the nav view's lifecycle is long, it is told to change state when
+//   the main view changes.
 
 
 var AppRouter = Backbone.Router.extend({
     mainView: null,
+    navView: null,
     routes: {
         '': 'home',
         'stock': 'stock'
     },
     initialize: function() {
-        new NavView().render().$el.appendTo('#nav-container');
+        this.navView = new NavView();
+        this.navView.render().$el.appendTo('#nav-container');
     },
     home: function() {
         this.mainView && this.mainView.remove();
         this.mainView = new HomeView();
         this.mainView.render().$el.appendTo($('#main-view-container'));
+        this.navView.setCurrent('home');
     },
     stock: function() {
         this.mainView && this.mainView.remove();
         this.mainView = new StockView();
         this.mainView.render().$el.appendTo($('#main-view-container'));
+        this.navView.setCurrent('stock');
     }
 });
 
@@ -49,9 +55,19 @@ var StockView = Backbone.View.extend({
 });
 
 var NavView = Backbone.View.extend({
+    current: null,
+    _highlightCurrent: function() {
+        this.$('a').removeClass('current');
+        this.$('a.' + this.current).addClass('current');
+    },
+    setCurrent: function(current) {
+        this.current = current;
+        this.render();
+    },
     render: function() {
         var template = _.template($('#nav-template').text());
         this.$el.html(template());
+        this._highlightCurrent();
         return this;
     }
 });
