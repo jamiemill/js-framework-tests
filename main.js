@@ -3,6 +3,8 @@ $(document).ready(function() {
     Backbone.history.start({pushState: true});
 });
 
+// Parent version: master
+
 // In this version:
 // - html5 pushstate is used
 // - navigation clicks are intercepted
@@ -65,9 +67,14 @@ var AppRouter = Backbone.Router.extend({
 
 
 var HomeView = Backbone.View.extend({
+    watchlistView: null,
+    initialize: function() {
+        this.watchlistView = new WatchlistView();
+    },
     render: function() {
         var template = _.template($('#home-template').text());
         this.$el.html(template());
+        this.$('.watchlist-container').append(this.watchlistView.render().el);
         return this;
     }
 });
@@ -121,9 +128,27 @@ var NavView = Backbone.View.extend({
     }
 });
 
+var WatchlistView = Backbone.View.extend({
+    watchlist: null,
+    initialize: function() {
+        this.watchlist = new Watchlist();
+        this.watchlist.fetch();
+        this.watchlist.on('add', this.render, this);
+    },
+    render: function() {
+        var template = _.template($('#watchlist-template').text());
+        this.$el.html(template({watchlist: this.watchlist.toJSON()}));
+        return this;
+    }
+});
+
 var Stock = Backbone.Model.extend({
     url: function() {
         return '/stock-' + this.id + '.json';
     }
 });
 
+var Watchlist = Backbone.Collection.extend({
+    model: Stock,
+    url: '/watchlist.json'
+});
