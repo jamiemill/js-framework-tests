@@ -4,10 +4,9 @@ $(document).ready(function() {
 });
 
 // In this version:
-// - navigation is via real clicks on links that are just anchors
-// - therefore routes get triggered automatically by backbone
-// - there is no html5 pushstate
-
+// - html5 pushstate is used
+// - navigation clicks are intercepted
+// - they are translated to calls to router.navigate with {trigger:true}
 
 var AppRouter = Backbone.Router.extend({
     mainView: null,
