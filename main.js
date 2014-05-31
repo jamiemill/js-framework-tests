@@ -16,7 +16,7 @@ var AppRouter = Backbone.Router.extend({
     navView: null,
     routes: {
         '': 'home',
-        'stock': 'stock'
+        'stock/:id': 'stock'
     },
     initialize: function() {
         this.navView = new NavView();
@@ -25,8 +25,8 @@ var AppRouter = Backbone.Router.extend({
     home: function() {
         this._show(new HomeView(), 'home');
     },
-    stock: function() {
-        this._show(new StockView(), 'stock');
+    stock: function(stockId) {
+        this._show(new StockView({stockId: stockId}), 'stock');
     },
     _show: function(view, pageName) {
         this.mainView && this.mainView.remove();
@@ -47,9 +47,15 @@ var HomeView = Backbone.View.extend({
 
 
 var StockView = Backbone.View.extend({
+    stock: null,
+    initialize: function(options) {
+        this.stock = new Stock({id: options.stockId});
+        this.stock.fetch();
+        this.stock.on('change', _.bind(this.render, this));
+    },
     render: function() {
         var template = _.template($('#stock-template').text());
-        this.$el.html(template());
+        this.$el.html(template({stock: this.stock.toJSON()}));
         return this;
     }
 });
@@ -71,3 +77,10 @@ var NavView = Backbone.View.extend({
         return this;
     }
 });
+
+var Stock = Backbone.Model.extend({
+    url: function() {
+        return 'stock-' + this.id + '.json';
+    }
+});
+
