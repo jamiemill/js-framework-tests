@@ -133,7 +133,7 @@ var WatchlistView = Backbone.View.extend({
     initialize: function() {
         this.watchlist = new Watchlist();
         this.watchlist.fetch();
-        this.watchlist.on('add', this.render, this);
+        this.watchlist.on('sync', this.render, this);
     },
     render: function() {
         var template = _.template($('#watchlist-template').text());
