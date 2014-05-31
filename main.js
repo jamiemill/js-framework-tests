@@ -77,7 +77,7 @@ var NavView = Backbone.View.extend({
     },
     _navClicked: function(e) {
         e.preventDefault();
-        var pageName = e.target.hash.substr(1);
+        var pageName = e.target.pathname.substr(1);
         this.router.navigate(pageName, {trigger: true});
     },
     _highlightCurrent: function() {
