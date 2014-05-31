@@ -29,16 +29,16 @@ var AppRouter = Backbone.Router.extend({
         this.navView.render().$el.appendTo('#nav-container');
     },
     home: function() {
-        this.mainView && this.mainView.remove();
-        this.mainView = new HomeView();
-        this.mainView.render().$el.appendTo($('#main-view-container'));
-        this.navView.setCurrent('home');
+        this._show(new HomeView(), 'home');
     },
     stock: function() {
+        this._show(new StockView(), 'stock');
+    },
+    _show: function(view, pageName) {
         this.mainView && this.mainView.remove();
-        this.mainView = new StockView();
+        this.mainView = view;
         this.mainView.render().$el.appendTo($('#main-view-container'));
-        this.navView.setCurrent('stock');
+        this.navView.setCurrent(pageName);
     }
 });
 
