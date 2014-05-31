@@ -51,7 +51,7 @@ var StockView = Backbone.View.extend({
     initialize: function(options) {
         this.stock = new Stock({id: options.stockId});
         this.stock.fetch();
-        this.stock.on('change', _.bind(this.render, this));
+        this.stock.on('change', this.render, this);
     },
     render: function() {
         var template = _.template($('#stock-template').text());
