@@ -26,11 +26,13 @@
 
 <script type="x-template" id="stock-template">
   <p>This is the stock template.</p>
+  <h1><%- stock.name %></h1>
+  <h2><%- stock.symbol %></h2>
 </script>
 
 <script type="x-template" id="nav-template">
   <nav>
-    <a class="home" data-page="Home" href="#">Home</a>
-    <a class="stock" data-page="Stock" href="#stock">Stock</a>
+    <a class="home" data-page="home" href="/">Home</a>
+    <a class="stock" data-page="stock" data-stock-id="5" href="/stock/5">Stock</a>
   </nav>
 </script>

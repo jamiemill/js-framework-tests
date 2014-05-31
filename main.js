@@ -33,8 +33,8 @@ App.prototype = {
     showHome: function() {
         this._show(new HomeView(), 'home', '');
     },
-    showStock: function() {
-        this._show(new StockView(), 'stock', 'stock');
+    showStock: function(stockId) {
+        this._show(new StockView({stockId: stockId}), 'stock', 'stock/' + stockId);
     },
     _show: function(view, pageName, route) {
         this.mainView && this.mainView.remove();
@@ -49,7 +49,7 @@ App.prototype = {
 var AppRouter = Backbone.Router.extend({
     routes: {
         '': 'home',
-        'stock': 'stock'
+        'stock/:id': 'stock'
     },
     app: null,
     initialize: function(options) {
@@ -58,8 +58,8 @@ var AppRouter = Backbone.Router.extend({
     home: function() {
         this.app.showHome();
     },
-    stock: function() {
-        this.app.showStock();
+    stock: function(stockId) {
+        this.app.showStock(stockId);
     }
 });
 
@@ -74,9 +74,15 @@ var HomeView = Backbone.View.extend({
 
 
 var StockView = Backbone.View.extend({
+    stock: null,
+    initialize: function(options) {
+        this.stock = new Stock({id: options.stockId});
+        this.stock.fetch();
+        this.stock.on('change', _.bind(this.render, this));
+    },
     render: function() {
         var template = _.template($('#stock-template').text());
-        this.$el.html(template());
+        this.$el.html(template({stock: this.stock.toJSON()}));
         return this;
     }
 });
@@ -93,7 +99,11 @@ var NavView = Backbone.View.extend({
     _navClicked: function(e) {
         e.preventDefault();
         var pageName = $(e.target).data('page');
-        this.app['show' + pageName]();
+        if (pageName === 'home') {
+            this.app.showHome();
+        } else if (pageName === 'stock') {
+            this.app.showStock($(e.target).data('stock-id'));
+        }
     },
     _highlightCurrent: function() {
         this.$('a').removeClass('current');
@@ -110,3 +120,10 @@ var NavView = Backbone.View.extend({
         return this;
     }
 });
+
+var Stock = Backbone.Model.extend({
+    url: function() {
+        return '/stock-' + this.id + '.json';
+    }
+});
+
