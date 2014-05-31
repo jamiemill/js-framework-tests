@@ -3,6 +3,11 @@ $(document).ready(function() {
     Backbone.history.start({pushState: false});
 });
 
+// In this version:
+// - navigation is via real clicks on links that are just anchors
+// - therefore routes get triggered automatically by backbone
+// - there is no html5 pushstate
+
 
 var AppRouter = Backbone.Router.extend({
     mainView: null,
