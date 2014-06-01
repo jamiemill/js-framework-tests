@@ -11,13 +11,6 @@ $(document).ready(function() {
 // - they are translated to calls to router.navigate with {trigger:true}
 // - the nav view's lifecycle is long, it is told to change state when
 //   the main view changes.
-// - note that when the nav view intercepts a click on a menu item
-//   it doesn't highlight that menu item, it just tells the router
-//   to navigate, and waits to be told what to highlight in response.
-// - instead it could highlight the item immediately, but then there
-//   are two codepaths for highlighting the current item (being told
-//   externally after initial construction, and internally on click)
-
 
 var AppRouter = Backbone.Router.extend({
     mainView: null,
