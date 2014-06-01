@@ -82,6 +82,8 @@ var HomeView = Backbone.View.extend({
 
 var StockView = Backbone.Marionette.ItemView.extend({
     template: '#stock-template',
+    // I'm surprised this is necessary, but it seems so, and can't
+    // see evidence in docs or testsuite that this happens automatically.
     modelEvents: {
         'change': 'render'
     }
