@@ -1,6 +1,5 @@
 $(document).ready(function() {
-    var app = new App();
-    Backbone.history.start({pushState: true});
+    App.start();
 });
 
 // Parent version: app-object-passive-router
@@ -16,36 +15,33 @@ $(document).ready(function() {
 // - the nav view's lifecycle is long, it is told to change state when
 //   the main view changes.
 
-var App = function() {
-    this.initialize.apply(this, arguments);
-};
-App.prototype = {
-    appRouter: null,
-    mainView: null,
-    navView: null,
-    initialize: function() {
-        this.appRouter = new AppRouter({app: this});
-        this.navView = new NavView({app: this});
-        this.navView.render().$el.appendTo('#nav-container');
-    },
-    showHome: function() {
+var App = new Backbone.Marionette.Application();
+
+App.addInitializer(function(options) {
+    this.appRouter = new AppRouter({app: this});
+    this.navView = new NavView({app: this});
+    this.navView.render().$el.appendTo('#nav-container');
+
+    this.showHome = function() {
         var watchlist = new Watchlist();
         watchlist.fetch();
         this._show(new HomeView({watchlist: watchlist}), 'home', '');
-    },
-    showStock: function(stockId) {
+    };
+    this.showStock = function(stockId) {
         var stock = new Stock({id: stockId});
         stock.fetch();
         this._show(new StockView({model: stock}), 'stock', 'stock/' + stockId);
-    },
-    _show: function(view, pageName, route) {
+    };
+    this._show = function(view, pageName, route) {
         this.mainView && this.mainView.remove();
         this.mainView = view;
         this.mainView.render().$el.appendTo($('#main-view-container'));
         this.navView.setCurrent(pageName);
         this.appRouter.navigate(route);
-    }
-};
+    };
+
+    Backbone.history.start({pushState: true});
+});
 
 
 var AppRouter = Backbone.Router.extend({
