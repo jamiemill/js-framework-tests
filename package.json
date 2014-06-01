@@ -1,0 +1,9 @@
+{
+  "name": "server",
+  "description": "simple backend for supporitng test JS app",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "4.4.0"
+  }
+}
