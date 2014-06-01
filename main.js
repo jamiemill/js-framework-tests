@@ -23,10 +23,6 @@ App.addRegions({
 });
 
 App.addInitializer(function(options) {
-    this.appRouter = new AppRouter({app: this});
-    this.navView = new NavView({app: this});
-    this.navRegion.show(this.navView);
-
     this.showHome = function() {
         var watchlist = new Watchlist();
         watchlist.fetch();
@@ -43,23 +39,17 @@ App.addInitializer(function(options) {
         this.appRouter.navigate(route);
     };
 
+    this.appRouter = new AppRouter({controller: this});
+    this.navView = new NavView({app: this});
+    this.navRegion.show(this.navView);
+
     Backbone.history.start({pushState: true});
 });
 
-var AppRouter = Backbone.Router.extend({
-    routes: {
-        '': 'home',
-        'stock/:id': 'stock'
-    },
-    app: null,
-    initialize: function(options) {
-        this.app = options.app;
-    },
-    home: function() {
-        this.app.showHome();
-    },
-    stock: function(stockId) {
-        this.app.showStock(stockId);
+var AppRouter = Backbone.Marionette.AppRouter.extend({
+    appRoutes: {
+        '': 'showHome',
+        'stock/:id': 'showStock'
     }
 });
 
