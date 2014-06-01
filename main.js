@@ -12,13 +12,6 @@ $(document).ready(function() {
 // - the App object then notifies the router to update the URL passively
 // - the nav view's lifecycle is long, it is told to change state when
 //   the main view changes.
-// - note that when the nav view intercepts a click on a menu item
-//   it doesn't highlight that menu item, it just tells the app what
-//   view to show, and waits to be told what to highlight in response.
-// - instead it could highlight the item immediately, but then there
-//   are two codepaths for highlighting the current item (being told
-//   externally after initial construction, and internally on click)
-
 
 var App = function() {
     this.initialize.apply(this, arguments);
