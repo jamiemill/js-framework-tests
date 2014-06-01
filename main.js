@@ -3,9 +3,12 @@ $(document).ready(function() {
     Backbone.history.start({pushState: true});
 });
 
-// Parent version: routes-triggered
+// Parent version: app-object-passive-router
 
 // In this version:
+// - This is supposed to be idiomatic Marionette
+// - Marionette already adds a few features the main branch didn't have
+//   - automatic re-rendering of watchlist when items are added/removed
 // - html5 pushstate is used
 // - navigation clicks are intercepted
 // - they are translated into instructions to the App object to show a page
@@ -66,7 +69,7 @@ var AppRouter = Backbone.Router.extend({
 var HomeView = Backbone.View.extend({
     watchlistView: null,
     initialize: function(options) {
-        this.watchlistView = new WatchlistView({watchlist: options.watchlist});
+        this.watchlistView = new WatchlistView({collection: options.watchlist});
     },
     render: function() {
         var template = _.template($('#home-template').text());
@@ -124,17 +127,15 @@ var NavView = Backbone.View.extend({
     }
 });
 
-var WatchlistView = Backbone.View.extend({
-    watchlist: null,
-    initialize: function(options) {
-        this.watchlist = options.watchlist;
-        this.watchlist.on('sync', this.render, this);
-    },
-    render: function() {
-        var template = _.template($('#watchlist-template').text());
-        this.$el.html(template({watchlist: this.watchlist.toJSON()}));
-        return this;
-    }
+var WatchlistItemView = Backbone.Marionette.ItemView.extend({
+    tagName: 'li',
+    template: '#watchlist-item-template'
+});
+
+var WatchlistView = Backbone.Marionette.CompositeView.extend({
+    template: '#watchlist-template',
+    itemView: WatchlistItemView,
+    itemViewContainer: 'ul'
 });
 
 var Stock = Backbone.Model.extend({
@@ -147,3 +148,4 @@ var Watchlist = Backbone.Collection.extend({
     model: Stock,
     url: '/watchlist.json'
 });
+
