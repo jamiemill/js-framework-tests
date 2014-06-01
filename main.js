@@ -90,15 +90,15 @@ var StockView = Backbone.Marionette.ItemView.extend({
     }
 });
 
-var NavView = Backbone.View.extend({
+var NavView = Backbone.Marionette.ItemView.extend({
     app: null,
-    current: null,
+    template: '#nav-template',
     events: {
         'click a': '_navClicked'
     },
     initialize: function(options) {
         this.app = options.app;
-        this.listenTo(this.app.vent, 'page:shown', this._setCurrent, this);
+        this.listenTo(this.app.vent, 'page:shown', this._highlight, this);
     },
     _navClicked: function(e) {
         e.preventDefault();
@@ -109,19 +109,9 @@ var NavView = Backbone.View.extend({
             this.app.execute('show:stock', $(e.target).data('stock-id'));
         }
     },
-    _highlightCurrent: function() {
+    _highlight: function(pageName) {
         this.$('a').removeClass('current');
-        this.$('a.' + this.current).addClass('current');
-    },
-    _setCurrent: function(current) {
-        this.current = current;
-        this.render();
-    },
-    render: function() {
-        var template = _.template($('#nav-template').text());
-        this.$el.html(template());
-        this._highlightCurrent();
-        return this;
+        this.$('a.' + pageName).addClass('current');
     }
 });
 
