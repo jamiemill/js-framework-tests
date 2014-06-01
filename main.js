@@ -36,7 +36,7 @@ App.prototype = {
     showStock: function(stockId) {
         var stock = new Stock({id: stockId});
         stock.fetch();
-        this._show(new StockView({stock: stock}), 'stock', 'stock/' + stockId);
+        this._show(new StockView({model: stock}), 'stock', 'stock/' + stockId);
     },
     _show: function(view, pageName, route) {
         this.mainView && this.mainView.remove();
@@ -80,16 +80,10 @@ var HomeView = Backbone.View.extend({
 });
 
 
-var StockView = Backbone.View.extend({
-    stock: null,
-    initialize: function(options) {
-        this.stock = options.stock;
-        this.stock.on('change', this.render, this);
-    },
-    render: function() {
-        var template = _.template($('#stock-template').text());
-        this.$el.html(template({stock: this.stock.toJSON()}));
-        return this;
+var StockView = Backbone.Marionette.ItemView.extend({
+    template: '#stock-template',
+    modelEvents: {
+        'change': 'render'
     }
 });
 
@@ -139,6 +133,14 @@ var WatchlistView = Backbone.Marionette.CompositeView.extend({
 });
 
 var Stock = Backbone.Model.extend({
+    // These are added to prevent template exploding when
+    // rendered before model is fetched.
+    // We could instead switch the template dymanically
+    // to use a 'loading' template when not loaded.
+    defaults: {
+        symbol: '',
+        name: ''
+    },
     url: function() {
         return '/stock-' + this.id + '.json';
     }
