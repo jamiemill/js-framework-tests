@@ -8,12 +8,13 @@ $(document).ready(function() {
 // - This is supposed to be idiomatic Marionette
 // - Marionette already adds a few features the main branch didn't have
 //   - automatic re-rendering of watchlist when items are added/removed
+//   - hopefully proper cleanup of views when shown/hidden via regions
 // - html5 pushstate is used
 // - navigation clicks are intercepted
-// - they are translated into instructions to the App object to show a page
-// - the App object then notifies the router to update the URL passively
-// - the nav view's lifecycle is long, it is told to change state when
-//   the main view changes.
+// - they are translated into 'commands' to show a page
+// - the App object then tells a Controller to show something
+// - the nav view's lifecycle is long, it changes state when it hears an
+//   event saying that the page changed.
 
 var App = new Backbone.Marionette.Application();
 
@@ -23,15 +24,20 @@ App.addRegions({
 });
 
 App.addInitializer(function(options) {
-    var appController = new AppController({app: this});
-    // TODO get rid of these references by using events?
-    this.appRouter = new AppRouter({controller: appController});
-
-    this.navView = new NavView({controller: appController});
-    this.navRegion.show(this.navView);
-
+    this.appController = new AppController({app: this});
+    this.appRouter = new AppRouter({controller: this.appController});
+    this.navRegion.show(new NavView({app: this}));
     Backbone.history.start({pushState: true});
 });
+
+App.commands.setHandler('show:home', function() {
+    App.appController.showHome();
+});
+
+App.commands.setHandler('show:stock', function(stockId) {
+    App.appController.showStock(stockId);
+});
+
 
 var AppController = Backbone.Marionette.Controller.extend({
     app: null,
@@ -50,7 +56,8 @@ var AppController = Backbone.Marionette.Controller.extend({
     },
     _show: function(view, pageName, route) {
         this.app.mainRegion.show(view);
-        this.app.navView.setCurrent(pageName);
+        this.app.vent.trigger('page:shown', pageName);
+        // TODO: should this be via event too?
         this.app.appRouter.navigate(route);
     }
 });
@@ -86,30 +93,30 @@ var StockView = Backbone.Marionette.ItemView.extend({
     }
 });
 
-// TODO: don't talk to controller directly, use events
 var NavView = Backbone.View.extend({
-    controller: null,
+    app: null,
     current: null,
     events: {
         'click a': '_navClicked'
     },
     initialize: function(options) {
-        this.controller = options.controller;
+        this.app = options.app;
+        this.listenTo(this.app.vent, 'page:shown', this._setCurrent, this);
     },
     _navClicked: function(e) {
         e.preventDefault();
         var pageName = $(e.target).data('page');
         if (pageName === 'home') {
-            this.controller.showHome();
+            this.app.execute('show:home');
         } else if (pageName === 'stock') {
-            this.controller.showStock($(e.target).data('stock-id'));
+            this.app.execute('show:stock', $(e.target).data('stock-id'));
         }
     },
     _highlightCurrent: function() {
         this.$('a').removeClass('current');
         this.$('a.' + this.current).addClass('current');
     },
-    setCurrent: function(current) {
+    _setCurrent: function(current) {
         this.current = current;
         this.render();
     },
