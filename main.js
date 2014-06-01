@@ -23,27 +23,36 @@ App.addRegions({
 });
 
 App.addInitializer(function(options) {
-    this.showHome = function() {
-        var watchlist = new Watchlist();
-        watchlist.fetch();
-        this._show(new HomeView({watchlist: watchlist}), 'home', '');
-    };
-    this.showStock = function(stockId) {
-        var stock = new Stock({id: stockId});
-        stock.fetch();
-        this._show(new StockView({model: stock}), 'stock', 'stock/' + stockId);
-    };
-    this._show = function(view, pageName, route) {
-        this.mainRegion.show(view);
-        this.navView.setCurrent(pageName);
-        this.appRouter.navigate(route);
-    };
+    var appController = new AppController({app: this});
+    // TODO get rid of these references by using events?
+    this.appRouter = new AppRouter({controller: appController});
 
-    this.appRouter = new AppRouter({controller: this});
-    this.navView = new NavView({app: this});
+    this.navView = new NavView({controller: appController});
     this.navRegion.show(this.navView);
 
     Backbone.history.start({pushState: true});
+});
+
+var AppController = Backbone.Marionette.Controller.extend({
+    app: null,
+    initialize: function(options) {
+        this.app = options.app;
+    },
+    showHome: function() {
+        var watchlist = new Watchlist();
+        watchlist.fetch();
+        this._show(new HomeView({watchlist: watchlist}), 'home', '');
+    },
+    showStock: function(stockId) {
+        var stock = new Stock({id: stockId});
+        stock.fetch();
+        this._show(new StockView({model: stock}), 'stock', 'stock/' + stockId);
+    },
+    _show: function(view, pageName, route) {
+        this.app.mainRegion.show(view);
+        this.app.navView.setCurrent(pageName);
+        this.app.appRouter.navigate(route);
+    }
 });
 
 var AppRouter = Backbone.Marionette.AppRouter.extend({
@@ -77,22 +86,23 @@ var StockView = Backbone.Marionette.ItemView.extend({
     }
 });
 
+// TODO: don't talk to controller directly, use events
 var NavView = Backbone.View.extend({
-    app: null,
+    controller: null,
     current: null,
     events: {
         'click a': '_navClicked'
     },
     initialize: function(options) {
-        this.app = options.app;
+        this.controller = options.controller;
     },
     _navClicked: function(e) {
         e.preventDefault();
         var pageName = $(e.target).data('page');
         if (pageName === 'home') {
-            this.app.showHome();
+            this.controller.showHome();
         } else if (pageName === 'stock') {
-            this.app.showStock($(e.target).data('stock-id'));
+            this.controller.showStock($(e.target).data('stock-id'));
         }
     },
     _highlightCurrent: function() {
