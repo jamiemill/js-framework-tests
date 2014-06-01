@@ -17,10 +17,15 @@ $(document).ready(function() {
 
 var App = new Backbone.Marionette.Application();
 
+App.addRegions({
+    navRegion: '#nav-container',
+    mainRegion: '#main-view-container'
+});
+
 App.addInitializer(function(options) {
     this.appRouter = new AppRouter({app: this});
     this.navView = new NavView({app: this});
-    this.navView.render().$el.appendTo('#nav-container');
+    this.navRegion.show(this.navView);
 
     this.showHome = function() {
         var watchlist = new Watchlist();
@@ -33,16 +38,13 @@ App.addInitializer(function(options) {
         this._show(new StockView({model: stock}), 'stock', 'stock/' + stockId);
     };
     this._show = function(view, pageName, route) {
-        this.mainView && this.mainView.remove();
-        this.mainView = view;
-        this.mainView.render().$el.appendTo($('#main-view-container'));
+        this.mainRegion.show(view);
         this.navView.setCurrent(pageName);
         this.appRouter.navigate(route);
     };
 
     Backbone.history.start({pushState: true});
 });
-
 
 var AppRouter = Backbone.Router.extend({
     routes: {
