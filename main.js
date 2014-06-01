@@ -47,7 +47,10 @@ var AppController = Backbone.Marionette.Controller.extend({
     showHome: function() {
         var watchlist = new Watchlist();
         watchlist.fetch();
-        this._show(new HomeView({watchlist: watchlist}), 'home', '');
+        var homeView = new HomeView({watchlist: watchlist});
+        this._show(homeView, 'home', '');
+        // TODO: would like to move this into HomeView, but can't happen until rendered
+        homeView.watchlistRegion.show(new WatchlistView({collection: watchlist}));
     },
     showStock: function(stockId) {
         var stock = new Stock({id: stockId});
@@ -70,16 +73,10 @@ var AppRouter = Backbone.Marionette.AppRouter.extend({
 });
 
 
-var HomeView = Backbone.View.extend({
-    watchlistView: null,
-    initialize: function(options) {
-        this.watchlistView = new WatchlistView({collection: options.watchlist});
-    },
-    render: function() {
-        var template = _.template($('#home-template').text());
-        this.$el.html(template());
-        this.$('.watchlist-container').append(this.watchlistView.render().el);
-        return this;
+var HomeView = Backbone.Marionette.Layout.extend({
+    template: '#home-template',
+    regions: {
+        watchlistRegion: '.watchlist-container'
     }
 });
 
