@@ -18,7 +18,8 @@ var AppRouter = Backbone.Router.extend({
     navView: null,
     routes: {
         '': 'home',
-        'stock/:id': 'stock'
+        'stock/:id': 'stock',
+        'login': 'login'
     },
     initialize: function() {
         this.navView = new NavView();
@@ -32,6 +33,9 @@ var AppRouter = Backbone.Router.extend({
         stock.fetch();
         this._show(new StockView({stock: stock}), 'stock');
     },
+    login: function() {
+        this._show(new LoginView(), 'login');
+    },
     _show: function(view, pageName) {
         this.mainView && this.mainView.remove();
         this.mainView = view;
@@ -40,6 +44,28 @@ var AppRouter = Backbone.Router.extend({
     }
 });
 
+var LoginView = Backbone.View.extend({
+    events: {
+        'submit form': '_onSubmit'
+    },
+    render: function() {
+        var template = _.template($('#login-template').text());
+        this.$el.html(template());
+        return this;
+    },
+    _onSubmit: function(e) {
+        e.preventDefault();
+        var session = new Session({
+            username: this.$('username').val(),
+            password: this.$('password').val()
+        });
+        session.save().then(_.bind(this._onLoginSuccess, this));
+        return false;
+    },
+    _onLoginSuccess: function() {
+        Backbone.history.navigate('', {trigger: true});
+    }
+});
 
 var HomeView = Backbone.View.extend({
     watchlistView: null,
@@ -110,4 +136,10 @@ var Stock = Backbone.Model.extend({
 var Watchlist = Backbone.Collection.extend({
     model: Stock,
     url: '/watchlist.json'
+});
+
+var Session = Backbone.Model.extend({
+    url: function() {
+        return '/sessions.json'
+    }
 });

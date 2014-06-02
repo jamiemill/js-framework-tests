@@ -8,10 +8,13 @@ app.use(function(req, res, next){
 
 app.use(express.static(__dirname));
 
-
-// app.get('/', function(req, res){
-//     res.send('hello world');
-// });
+app.post('/sessions.json', function(req, res){
+  res.send(201, {
+    user: {
+      username:'username'
+    }
+  });
+});
 var port = 3000;
 app.listen(port);
 console.log('server listening on port ' + port);
