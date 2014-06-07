@@ -13,40 +13,110 @@ $(document).ready(function() {
 //   the main view changes.
 
 
+function requireAuth(cb) {
+    return function() {
+        var args = arguments;
+        if (this.session.get('authenticated')) {
+            cb.apply(this, args);
+        } else {
+            this.session.fetch()
+                .then(_.bind(function(session) {
+                    if (this.session.get('authenticated')) {
+                        cb.apply(this, args);
+                    } else {
+                        Backbone.history.navigate('login', {trigger: true});
+                    }
+                }, this))
+                .fail(errorMessager('Cannot fetch session.'));
+        }
+    }
+}
+
+function errorMessager(msg) {
+    return function() {
+        alert(msg);
+    }
+}
+
 var AppRouter = Backbone.Router.extend({
     mainView: null,
     navView: null,
+    session: null,
     routes: {
         '': 'home',
         'stock/:id': 'stock',
         'login': 'login'
     },
     initialize: function() {
-        this.navView = new NavView();
-        this.navView.render().$el.appendTo('#nav-container');
+        this.session = new Session();
+    },
+    home: requireAuth(function() {
+        var appView = new AppView({session: this.session});
+        this._show(appView, 'home');
+        appView.home();
+    }),
+    stock: requireAuth(function(stockId) {
+        var appView = new AppView({session: this.session});
+        this._show(appView, 'stock');
+        appView.stock(stockId);
+    }),
+    login: function() {
+        this._show(new LoginView({session: this.session}), 'login');
+    },
+    _show: function(view, pageName) {
+        this.mainView && this.mainView.remove();
+        this.mainView = view;
+        this.mainView.render().$el.appendTo($('body'));
+    }
+});
+
+var AppView = Backbone.View.extend({
+    navView: null,
+    mainView: null,
+    session: null,
+    initialize: function(options) {
+        this.session = options.session;
+        this.navView = new NavView({appView: this});
+    },
+    render: function() {
+        var template = _.template($('#app-template').text());
+        this.$el.html(template());
+        this.navView.render().$el.appendTo(this.$('#nav-container'));
+        return this;
     },
     home: function() {
         this._show(new HomeView(), 'home');
     },
     stock: function(stockId) {
         var stock = new Stock({id: stockId});
-        stock.fetch();
+        stock.fetch().fail(errorMessager('Could not load stock.'));
         this._show(new StockView({stock: stock}), 'stock');
-    },
-    login: function() {
-        this._show(new LoginView(), 'login');
     },
     _show: function(view, pageName) {
         this.mainView && this.mainView.remove();
         this.mainView = view;
-        this.mainView.render().$el.appendTo($('#main-view-container'));
+        this.mainView.render().$el.appendTo(this.$('#main-view-container'));
         this.navView.setCurrent(pageName);
-    }
+    },
+    logout: function() {
+        this.session.destroy()
+            .then(_.bind(this._onLogoutSuccess, this))
+            .fail(_.bind(this._onLogoutFail, this));
+    },
+    _onLogoutSuccess: function() {
+        this.session.clear();
+        Backbone.history.navigate('login', {trigger: true});
+    },
+    _onLogoutFail: errorMessager('Error logging out.')
 });
 
 var LoginView = Backbone.View.extend({
+    session: null,
     events: {
         'submit form': '_onSubmit'
+    },
+    initialize: function(options) {
+        this.session = options.session;
     },
     render: function() {
         var template = _.template($('#login-template').text());
@@ -55,23 +125,30 @@ var LoginView = Backbone.View.extend({
     },
     _onSubmit: function(e) {
         e.preventDefault();
-        var session = new Session({
-            username: this.$('username').val(),
-            password: this.$('password').val()
+        this.session.clear();
+        this.session.set({
+            username: this.$('.username').val(),
+            password: this.$('.password').val()
         });
-        session.save().then(_.bind(this._onLoginSuccess, this));
-        return false;
+        this.session.save()
+            .then(_.bind(this._onLoginSuccessfulSubmission, this))
+            .fail(_.bind(this._onLoginFailedSubmission, this));
     },
-    _onLoginSuccess: function() {
-        Backbone.history.navigate('', {trigger: true});
-    }
+    _onLoginSuccessfulSubmission: function() {
+        if (this.session.get('authenticated')) {
+            Backbone.history.navigate('', {trigger: true});
+        } else {
+            errorMessager('Credentials incorrect.')();
+        }
+    },
+    _onLoginFailedSubmission: errorMessager('Could not submit login.')
 });
 
 var HomeView = Backbone.View.extend({
     watchlistView: null,
     initialize: function() {
         var watchlist = new Watchlist();
-        watchlist.fetch();
+        watchlist.fetch().fail(errorMessager('Could not load watchist.'));
         this.watchlistView = new WatchlistView({watchlist: watchlist});
     },
     render: function() {
@@ -98,6 +175,13 @@ var StockView = Backbone.View.extend({
 
 var NavView = Backbone.View.extend({
     current: null,
+    appView: null,
+    initialize: function(options) {
+        this.appView = options.appView;
+    },
+    events: {
+        'click .logout': '_onLogoutClick'
+    },
     _highlightCurrent: function() {
         this.$('a').removeClass('current');
         this.$('a.' + this.current).addClass('current');
@@ -111,6 +195,10 @@ var NavView = Backbone.View.extend({
         this.$el.html(template());
         this._highlightCurrent();
         return this;
+    },
+    _onLogoutClick: function(e) {
+        e.preventDefault();
+        this.appView.logout();
     }
 });
 
