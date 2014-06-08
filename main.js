@@ -19,14 +19,13 @@ $(document).ready(function() {
 var App = new Backbone.Marionette.Application();
 
 App.addRegions({
-    navRegion: '#nav-container',
-    mainRegion: '#main-view-container'
+    rootRegion: '#root'
 });
 
 App.addInitializer(function(options) {
-    this.appController = new AppController({app: this});
+    this.session = new Session();
+    this.appController = new AppController({app: this, session: this.session});
     this.appRouter = new AppRouter({controller: this.appController});
-    this.navRegion.show(new NavView({app: this}));
     Backbone.history.start({pushState: true});
 });
 
@@ -38,27 +37,68 @@ App.commands.setHandler('show:stock', function(stockId) {
     App.appController.showStock(stockId);
 });
 
+App.commands.setHandler('logout', function(stockId) {
+    App.session.destroy()
+        .then(function() {
+            App.session.clear();
+            Backbone.history.navigate('login', {trigger: true});
+        })
+        .fail(errorMessager('Error logging out.'));
+});
+
+function requireAuth(cb) {
+    return function() {
+        var args = arguments;
+        if (this.session.get('authenticated')) {
+            cb.apply(this, args);
+        } else {
+            this.session.fetch()
+                .then(_.bind(function(session) {
+                    if (this.session.get('authenticated')) {
+                        cb.apply(this, args);
+                    } else {
+                        Backbone.history.navigate('login', {trigger: true});
+                    }
+                }, this))
+                .fail(errorMessager('Cannot fetch session.'));
+        }
+    }
+}
+
+function errorMessager(msg) {
+    return function() {
+        alert(msg);
+    }
+}
 
 var AppController = Backbone.Marionette.Controller.extend({
     app: null,
+    session: null,
     initialize: function(options) {
         this.app = options.app;
+        this.session = options.session;
     },
-    showHome: function() {
+    showHome: requireAuth(function() {
         var watchlist = new Watchlist();
-        watchlist.fetch();
-        var homeView = new HomeView({watchlist: watchlist});
-        this._show(homeView, 'home', '');
-        // TODO: would like to move this into HomeView, but can't happen until rendered
-        homeView.watchlistRegion.show(new WatchlistView({collection: watchlist}));
-    },
-    showStock: function(stockId) {
+        watchlist.fetch().fail(errorMessager('Could not load watchist.'));
+
+        var appView = new AppView({app: this.app});
+        this._show(appView, 'home', '');
+        appView.showHome(watchlist);
+    }),
+    showStock: requireAuth(function(stockId) {
         var stock = new Stock({id: stockId});
-        stock.fetch();
-        this._show(new StockView({model: stock}), 'stock', 'stock/' + stockId);
+        stock.fetch().fail(errorMessager('Could not load stock.'));
+
+        var appView = new AppView({app: this.app});
+        this._show(appView, 'stock', 'stock/' + stockId);
+        appView.showStock(stock);
+    }),
+    showLogin: function() {
+        this._show(new LoginView({session: this.session}), 'login' , 'login');
     },
     _show: function(view, pageName, route) {
-        this.app.mainRegion.show(view);
+        this.app.rootRegion.show(view);
         this.app.vent.trigger('page:shown', pageName);
         // TODO: should this be via event too?
         this.app.appRouter.navigate(route);
@@ -66,17 +106,76 @@ var AppController = Backbone.Marionette.Controller.extend({
 });
 
 var AppRouter = Backbone.Marionette.AppRouter.extend({
+    controller: null,
+    session: null,
     appRoutes: {
         '': 'showHome',
-        'stock/:id': 'showStock'
+        'stock/:id': 'showStock',
+        'login': 'showLogin'
     }
 });
 
+var AppView = Backbone.Marionette.Layout.extend({
+    template: '#app-template',
+    regions: {
+        navRegion: '#nav-container',
+        mainRegion: '#main-view-container'
+    },
+    initialize: function(options) {
+        this.app = options.app;
+    },
+    showHome: function(watchlist) {
+        this.mainRegion.show(new HomeView({watchlist: watchlist}));
+    },
+    showStock: function(stock) {
+        this.mainRegion.show(new StockView({model: stock}));
+    },
+    onShow: function() {
+        this.navRegion.show(new NavView({app: this.app}));
+    }
+});
+
+
+var LoginView = Backbone.Marionette.ItemView.extend({
+    session: null,
+    events: {
+        'submit form': '_onSubmit'
+    },
+    initialize: function(options) {
+        this.session = options.session;
+    },
+    template: '#login-template',
+    _onSubmit: function(e) {
+        e.preventDefault();
+        this.session.clear();
+        this.session.set({
+            username: this.$('.username').val(),
+            password: this.$('.password').val()
+        });
+        this.session.save()
+            .then(_.bind(this._onLoginSuccessfulSubmission, this))
+            .fail(_.bind(this._onLoginFailedSubmission, this));
+    },
+    _onLoginSuccessfulSubmission: function() {
+        if (this.session.get('authenticated')) {
+            Backbone.history.navigate('', {trigger: true});
+        } else {
+            errorMessager('Credentials incorrect.')();
+        }
+    },
+    _onLoginFailedSubmission: errorMessager('Could not submit login.')
+});
 
 var HomeView = Backbone.Marionette.Layout.extend({
     template: '#home-template',
     regions: {
         watchlistRegion: '.watchlist-container'
+    },
+    initialize: function(options) {
+        this.watchlist = options.watchlist;
+    },
+    onShow: function() {
+        this.watchlistRegion.show(new WatchlistView({collection: this.watchlist}));
     }
 });
 
@@ -94,7 +193,8 @@ var NavView = Backbone.Marionette.ItemView.extend({
     app: null,
     template: '#nav-template',
     events: {
-        'click a': '_navClicked'
+        'click a': '_navClicked',
+        'click .logout': '_onLogoutClick'
     },
     initialize: function(options) {
         this.app = options.app;
@@ -112,6 +212,10 @@ var NavView = Backbone.Marionette.ItemView.extend({
     _highlight: function(pageName) {
         this.$('a').removeClass('current');
         this.$('a.' + pageName).addClass('current');
+    },
+    _onLogoutClick: function(e) {
+        e.preventDefault();
+        this.app.execute('logout');
     }
 });
 
@@ -145,3 +249,8 @@ var Watchlist = Backbone.Collection.extend({
     url: '/watchlist.json'
 });
 
+var Session = Backbone.Model.extend({
+    url: function() {
+        return '/sessions.json'
+    }
+});

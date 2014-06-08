@@ -15,11 +15,13 @@
     </style>
 </head>
 <body>
-    <header id="nav-container"></header>
-    <section id="main-view-container"></section>
-    <footer>Footer</footer>
-</body>
-</html>
+  <div id="root"></div>
+
+<script type="x-template" id="app-template">
+  <header id="nav-container"></header>
+  <section id="main-view-container"></section>
+  <footer>Footer</footer>
+</script>
 
 <script type="x-template" id="home-template">
   <p>This is the home template.</p>
@@ -35,6 +37,7 @@
   <nav>
     <a class="home" data-page="home" href="/">Home</a>
     <a class="stock" data-page="stock" data-stock-id="5" href="/stock/5">Stock</a>
+    <a class="logout" href="#">Log out</a>
   </nav>
 </script>
 
@@ -46,3 +49,15 @@
 <script type="x-template" id="watchlist-item-template">
    <%- symbol %>: <%- name %>
 </script>
+
+<script type="x-template" id="login-template">
+  <h2>Log in</h2>
+  <form>
+    <label>Username <input class="username" value="username" /></label><br />
+    <label>Password <input class="password" type="password" value="password" /></label><br />
+    <input type="submit" />
+  </form>
+</script>
+
+</body>
+</html>
