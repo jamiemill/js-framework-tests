@@ -46,6 +46,23 @@ App.commands.setHandler('logout', function(stockId) {
         .fail(errorMessager('Error logging out.'));
 });
 
+App.commands.setHandler('login', function(username, password) {
+    App.session.clear();
+    App.session.set({
+        username: username,
+        password: password
+    });
+    App.session.save()
+        .then(function() {
+            if (App.session.get('authenticated')) {
+                Backbone.history.navigate('', {trigger: true});
+            } else {
+                errorMessager('Credentials incorrect.')();
+            }
+        })
+        .fail(errorMessager('Could not submit login.'));
+});
+
 function requireAuth(cb) {
     return function() {
         var args = arguments;
@@ -73,7 +90,7 @@ function errorMessager(msg) {
 
 var AppController = Backbone.Marionette.Controller.extend({
     app: null,
-    session: null,
+    session: null, // Necessary for requireAuth() actions
     initialize: function(options) {
         this.app = options.app;
         this.session = options.session;
@@ -95,7 +112,7 @@ var AppController = Backbone.Marionette.Controller.extend({
         appView.showStock(stock);
     }),
     showLogin: function() {
-        this._show(new LoginView({session: this.session}), 'login' , 'login');
+        this._show(new LoginView({app: this.app}), 'login' , 'login');
     },
     _show: function(view, pageName, route) {
         this.app.rootRegion.show(view);
@@ -142,28 +159,13 @@ var LoginView = Backbone.Marionette.ItemView.extend({
         'submit form': '_onSubmit'
     },
     initialize: function(options) {
-        this.session = options.session;
+        this.app = options.app;
     },
     template: '#login-template',
     _onSubmit: function(e) {
         e.preventDefault();
-        this.session.clear();
-        this.session.set({
-            username: this.$('.username').val(),
-            password: this.$('.password').val()
-        });
-        this.session.save()
-            .then(_.bind(this._onLoginSuccessfulSubmission, this))
-            .fail(_.bind(this._onLoginFailedSubmission, this));
-    },
-    _onLoginSuccessfulSubmission: function() {
-        if (this.session.get('authenticated')) {
-            Backbone.history.navigate('', {trigger: true});
-        } else {
-            errorMessager('Credentials incorrect.')();
-        }
-    },
-    _onLoginFailedSubmission: errorMessager('Could not submit login.')
+        this.app.execute('login', this.$('.username').val(), this.$('.password').val());
+    }
 });
 
 var HomeView = Backbone.Marionette.Layout.extend({
