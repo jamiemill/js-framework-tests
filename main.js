@@ -12,9 +12,9 @@ $(document).ready(function() {
 // - html5 pushstate is used
 // - navigation clicks are intercepted
 // - they are translated into 'commands' to show a page
-// - the App object then tells a Controller to show something
-// - the nav view's lifecycle is long, it changes state when it hears an
-//   event saying that the page changed.
+// - the command handlers then tell a Controller to show something
+// - I intend the NavView and AppView lifecycles to be long, but they are currently
+//   blown away and recreated when the page changes.
 
 var App = new Backbone.Marionette.Application();
 
