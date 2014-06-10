@@ -11,6 +11,11 @@ testApp.controller('WatchlistCtrl', function($scope) {
             "id": 6,
             "symbol": "GOOG US",
             "name": "Google Inc"
+        },
+        {
+            "id": 7,
+            "symbol": "AAPL US",
+            "name": "Apple Inc"
         }
     ];
 });
