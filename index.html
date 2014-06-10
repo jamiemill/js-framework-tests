@@ -6,7 +6,9 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.0/jquery.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.16/angular.js"></script>
-    <script src="/main.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.16/angular-route.js"></script>
+    <script src="/app.js"></script>
+    <script src="/controllers.js"></script>
     <style>
       a.current {
         color: red;
@@ -15,24 +17,7 @@
 </head>
 <body>
 
-
-  <div ng-controller="WatchlistCtrl">
-    <input type=search ng-model=query>
-    <h2>Watchlist</h2>
-    Sort by:
-    <select ng-model=orderBy>
-      <option value="id">ID</option>
-      <option value="symbol">Symbol</option>
-    </select>
-    <ul class="watchlist-list-container">
-      <li ng-repeat="stock in watchlist | filter:query | orderBy:orderBy">
-        {{stock.symbol}}: {{stock.name}}
-      </li>
-    </ul>
-  </div>
-
-
-
+  <div ng-view></div>
 
 <script type="x-template" id="app-template">
   <header id="nav-container"></header>
