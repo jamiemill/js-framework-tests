@@ -1,21 +1,15 @@
 var testApp = angular.module('testApp', []);
 
-testApp.controller('WatchlistCtrl', function($scope) {
-    $scope.watchlist = [
-        {
-            "id": 5,
-            "symbol": "TWTR US",
-            "name": "Twitter Inc"
-        },
-        {
-            "id": 6,
-            "symbol": "GOOG US",
-            "name": "Google Inc"
-        },
-        {
-            "id": 7,
-            "symbol": "AAPL US",
-            "name": "Apple Inc"
-        }
-    ];
+function errorMessager(msg) {
+    return function() {
+        alert(msg);
+    };
+}
+
+testApp.controller('WatchlistCtrl', function($scope, $http) {
+    $scope.orderBy = 'id';
+
+    $http.get('/watchlist.json').success(function(data) {
+        $scope.watchlist = data;
+    }).catch(errorMessager('Could not fech watchlist'));
 });
