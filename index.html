@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="testApp">
 <head>
     <title>Test Javascript Views</title>
     <meta charset="utf-8" />
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.0/jquery.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore.js"></script>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone.js"></script>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/backbone.marionette/1.8.0/backbone.marionette.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.16/angular.js"></script>
     <script src="/main.js"></script>
     <style>
       a.current {
@@ -15,7 +14,20 @@
     </style>
 </head>
 <body>
-  <div id="root"></div>
+
+
+  <div ng-controller="WatchlistCtrl">
+    <input type=search ng-model=query>
+    <h2>Watchlist</h2>
+    <ul class="watchlist-list-container">
+      <li ng-repeat="stock in watchlist | filter:query">
+        {{stock.symbol}}: {{stock.name}}
+      </li>
+    </ul>
+  </div>
+
+
+
 
 <script type="x-template" id="app-template">
   <header id="nav-container"></header>
@@ -42,12 +54,9 @@
 </script>
 
 <script type="x-template" id="watchlist-template">
-  <h2>Watchlist</h2>
-  <ul class="watchlist-list-container"></ul>
 </script>
 
 <script type="x-template" id="watchlist-item-template">
-   <%- symbol %>: <%- name %>
 </script>
 
 <script type="x-template" id="login-template">
