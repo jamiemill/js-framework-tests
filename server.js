@@ -35,32 +35,35 @@ function requireAuth(next) {
    }
 }
 
-app.get('/watchlist.json', requireAuth(function(req, res) {
-    res.send([
-        {
-            "id": 5,
-            "symbol": "TWTR US",
-            "name": "Twitter Inc"
-        },
-        {
-            "id": 6,
-            "symbol": "GOOG US",
-            "name": "Google Inc"
-        },
-        {
-            "id": 7,
-            "symbol": "AAPL US",
-            "name": "Apple Inc"
-        }
-    ]);
-}));
 
-app.get('/stock-5.json', requireAuth(function(req, res) {
-    res.send({
+var stocks = {
+    5: {
         "id": 5,
         "symbol": "TWTR US",
         "name": "Twitter Inc"
-    });
+    },
+    6: {
+        "id": 6,
+        "symbol": "GOOG US",
+        "name": "Google Inc"
+    },
+    7: {
+        "id": 7,
+        "symbol": "AAPL US",
+        "name": "Apple Inc"
+    }
+};
+
+app.get('/watchlist.json', requireAuth(function(req, res) {
+    res.send([
+        stocks[5],
+        stocks[6],
+        stocks[7]
+    ]);
+}));
+
+app.get('/stocks/:stockId.json', requireAuth(function(req, res) {
+    res.send(stocks[req.params.stockId] || 404);
 }));
 
 

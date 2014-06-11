@@ -8,7 +8,7 @@
     </select>
     <ul class="watchlist-list-container">
       <li ng-repeat="stock in watchlist | filter:query | orderBy:orderBy">
-        {{stock.symbol}}: {{stock.name}}
+        <a href="#/stocks/{{stock.id}}">{{stock.symbol}}: {{stock.name}}</a>
       </li>
     </ul>
   </div>

@@ -5,7 +5,14 @@ testAppControllers.controller('WatchlistCtrl', function($scope, $http) {
 
     $http.get('/watchlist.json').success(function(data) {
         $scope.watchlist = data;
-    }).catch(errorMessager('Could not fech watchlist'));
+    }).catch(errorMessager('Could not fetch watchlist.'));
+});
+
+testAppControllers.controller('StockCtrl', function($scope, $http, $routeParams) {
+    var stockId = $routeParams.stockId;
+    $http.get('/stocks/' + stockId + '.json').success(function(data) {
+        $scope.stock = data;
+    }).catch(errorMessager('Could not fetch stock.'));
 });
 
 function errorMessager(msg) {
