@@ -79,18 +79,19 @@ function requireAuth(cb) {
                 }, this))
                 .fail(errorMessager('Cannot fetch session.'));
         }
-    }
+    };
 }
 
 function errorMessager(msg) {
     return function() {
         alert(msg);
-    }
+    };
 }
 
 var AppController = Backbone.Marionette.Controller.extend({
     app: null,
     session: null, // Necessary for requireAuth() actions
+    appView: null,
     initialize: function(options) {
         this.app = options.app;
         this.session = options.session;
@@ -99,7 +100,7 @@ var AppController = Backbone.Marionette.Controller.extend({
         var watchlist = new Watchlist();
         watchlist.fetch().fail(errorMessager('Could not load watchist.'));
 
-        var appView = new AppView({app: this.app});
+        var appView = this.appView || new AppView({app: this.app});
         this._show(appView, 'home', '');
         appView.showHome(watchlist);
     }),
@@ -107,7 +108,7 @@ var AppController = Backbone.Marionette.Controller.extend({
         var stock = new Stock({id: stockId});
         stock.fetch().fail(errorMessager('Could not load stock.'));
 
-        var appView = new AppView({app: this.app});
+        var appView = this.appView || new AppView({app: this.app});
         this._show(appView, 'stock', 'stock/' + stockId);
         appView.showStock(stock);
     }),
