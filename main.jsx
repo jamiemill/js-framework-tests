@@ -36,7 +36,7 @@ var App = React.createClass({
         return (
             <div>
                 <header>
-                    <Nav handleNavigation={this.handleNavigation} />
+                    <Nav handleNavigation={this.handleNavigation} currentPage={this.state.currentPage} />
                 </header>
                 <section>
                     {this.getCurrentPage()}
@@ -61,11 +61,12 @@ var Nav = React.createClass({
         this.props.handleNavigation($(e.target).data('command'));
     },
     render: function() {
+        var currentPage = this.props.currentPage;
         return (
             <nav>
-                <a onClick={this.handleClick} class="home" data-command="show-home" href="/">Home</a>
-                <a onClick={this.handleClick} class="stock" data-command="show-stock" data-stock-id="5" href="/stock/5">Stock</a>
-                <a onClick={this.handleClick} class="logout" data-command="logout" href="#">Log out</a>
+                <a onClick={this.handleClick} className={currentPage === 'home' ? 'current' : ''} data-command="show-home" href="/">Home</a>
+                <a onClick={this.handleClick} className={currentPage === 'stock' ? 'current' : ''} data-command="show-stock" data-stock-id="5" href="/stock/5">Stock</a>
+                <a onClick={this.handleClick} data-command="logout" href="#">Log out</a>
             </nav>
         );
     }
