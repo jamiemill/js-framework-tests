@@ -2,7 +2,10 @@
 
 var App = React.createClass({
     getInitialState: function() {
-        return {stocks: []};
+        return {
+            stocks: [],
+            currentPage: 'home'
+        };
     },
     componentDidMount: function() {
         $.get('/watchlist.json', function(data) {
@@ -11,15 +14,57 @@ var App = React.createClass({
             });
         }.bind(this));
     },
+    handleNavigation: function(command) {
+        if (command === 'show-home') {
+            this.setState({currentPage: 'home'});
+        } else if (command === 'show-stock') {
+            this.setState({currentPage: 'stock'});
+        } else {
+            throw new Error('Unrecognised command: ' + command);
+        }
+    },
+    getCurrentPage: function() {
+        if (this.state.currentPage === 'home') {
+            return <Home stocks={this.state.stocks} />;
+        } else {
+            return <Stock />
+        }
+    },
     render: function() {
         return (
             <div>
-                <header></header>
+                <header>
+                    <Nav handleNavigation={this.handleNavigation} />
+                </header>
                 <section>
-                    <Home stocks={this.state.stocks} />
+                    {this.getCurrentPage()}
                 </section>
                 <footer>Footer</footer>
             </div>
+        );
+    }
+});
+
+var Stock = React.createClass({
+    render: function() {
+        return (
+            <p>Stock here</p>
+        )
+    }
+});
+
+var Nav = React.createClass({
+    handleClick: function(e) {
+        e.preventDefault();
+        this.props.handleNavigation($(e.target).data('command'));
+    },
+    render: function() {
+        return (
+            <nav>
+                <a onClick={this.handleClick} class="home" data-command="show-home" href="/">Home</a>
+                <a onClick={this.handleClick} class="stock" data-command="show-stock" data-stock-id="5" href="/stock/5">Stock</a>
+                <a onClick={this.handleClick} class="logout" data-command="logout" href="#">Log out</a>
+            </nav>
         );
     }
 });
