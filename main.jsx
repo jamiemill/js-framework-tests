@@ -1,23 +1,15 @@
 /** @jsx React.DOM */
 
-var stocks = [
-    {name: 'Google', symbol:'GOOG'},
-    {name: 'Facebook', symbol:'FB'}
-];
-
 var App = React.createClass({
     getInitialState: function() {
-        return {stocks: stocks};
+        return {stocks: []};
     },
     componentDidMount: function() {
-        var self = this;
-        setTimeout(function() {
-            self.setState({
-                stocks: [
-                    {name: 'Microsoft', symbol:'MSFT'}
-                ]
+        $.get('/watchlist.json', function(data) {
+            this.setState({
+                stocks: data
             });
-        }, 1000)
+        }.bind(this));
     },
     render: function() {
         return (
