@@ -9,9 +9,11 @@ var App = React.createClass({
     },
     componentDidMount: function() {
         $.get('/watchlist.json', function(data) {
-            this.setState({
-                stocks: data
-            });
+            if (this.isMounted()) {
+                this.setState({
+                    stocks: data
+                });
+            }
         }.bind(this));
     },
     handleNavigation: function(command) {
