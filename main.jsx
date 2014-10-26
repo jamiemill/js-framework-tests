@@ -48,9 +48,21 @@ var App = React.createClass({
 });
 
 var Stock = React.createClass({
+    getInitialState: function() {
+        return {stock: {}};
+    },
+    componentDidMount: function() {
+        $.get('/stock-5.json', function(data) {
+            if (this.isMounted()) {
+                this.setState({
+                    stock: data
+                });
+            }
+        }.bind(this));
+    },
     render: function() {
         return (
-            <p>Stock here</p>
+            <h1>{this.state.stock.symbol}: {this.state.stock.name}</h1>
         )
     }
 });
